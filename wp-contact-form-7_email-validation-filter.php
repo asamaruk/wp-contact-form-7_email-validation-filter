@@ -1,12 +1,12 @@
 <?php
 /*
 Plugin Name: Email Validation Filter for Contact Form 7
-Plugin URI: 
+Plugin URI: https://github.com/asamaruk
 Description: Provides additional functionality to Contact Form 7's email verification functionality. There are three filters: rejection filter, RFC filter, and DNS filter.
 Author: asamaruk
-Author URI:
+Author URI: https://github.com/asamaruk
 Text Domain: email-validation-filter-for-contact-form-7
-Version: 1.0.1
+Version: 1.0.2
 License: GPLv2
 Domain Path: /languages/
 */
@@ -58,7 +58,7 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
 	private function add_filters() {
         if ( version_compare( WPCF7_VERSION, '5.5.3', '>=' ) ) {
             add_filter( 'wpcf7_pre_construct_contact_form_properties', array( $this, 'filter_wpcf7_contact_form_properties' ), 10, 2 );
-            } else {
+        } else {
             add_filter( 'wpcf7_contact_form_properties', array( $this, 'filter_wpcf7_contact_form_properties' ), 10, 2 );
         }
         add_filter( 'wpcf7_validate_email',  array( $this, 'filter_wpcf7_validate_email' ),  12, 2 );
@@ -66,7 +66,7 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
 	}
 
 	public function action_admin_notices() {
-		if (defined('WPCF7_VERSION') < 5.0 ) {
+		if ( defined( 'WPCF7_VERSION' ) < 5.0 ) {
             echo '<div class="error"><p>',
             __( 'Error: Email Validation Filter for Contact Form 7 depends on Contact Form 7. Please update Contact Form 7.', self::PLUGIN_TEXTDOMAIN ),
             '</p></div>';
@@ -84,12 +84,14 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
     public function filter_wpcf7_contact_form_properties ( $contact_form ) { 
         $add_defaults = array();
         $add_defaults[self::PLUGIN_SAVE_ID] = $this->get_plugin_fields();
+
         return wp_parse_args( $contact_form, $add_defaults );
     }
 
     public function action_wpcf7_save_contact_form( $contact_form, $args) {
         $post = ( $args[self::PLUGIN_ID] )? $args[self::PLUGIN_ID] : null ;
         if ( empty( $post ) ) return false;
+
         $properties = array();
         $properties[self::PLUGIN_SAVE_ID] = $post;
         $contact_form->set_properties( $properties );
@@ -100,6 +102,7 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
             'title' => __( 'Email Validation Filter', self::PLUGIN_TEXTDOMAIN ),
 			'callback' => array( $this, 'callback_wpcf7_editor_panel' ),
         );
+
         return $contact_form_panels;
     }
 
@@ -256,6 +259,7 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
         $this->plugin_reject_filter( $result, $tag, $array, $post_email);
         $this->plugin_rfc_filter( $result, $tag, $array, $post_email);
         $this->plugin_dns_filter( $result, $tag, $array, $post_email);
+
         return $result;
     }
 
@@ -269,18 +273,18 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
         $mails = explode(",", $replace_unicode_list);
 
         $array_block_domain = array_filter( $mails, function( $mails ) {
-                if ( strpos( $mails, '@' ) !== false and strncmp( $mails , '@', 1 ) === 0 ) return $mails;
-            }
-        );
+            if ( strpos( $mails, '@' ) !== false and strncmp( $mails , '@', 1 ) === 0 ) return $mails;
+        });
+
         $flip_array_block_domain = array_flip( $array_block_domain );
         if ( isset( $flip_array_block_domain[$post_email_domain] ) ){
             $result->invalidate ( $tag, $request['error'] ); 
         }
 
         $array_block_email = array_filter( $mails, function( $mails ) {
-                if ( strpos( $mails, '@' ) !== false and strncmp( $mails , '@', 1 ) !== 0 ) return $mails;
-            }
-        );
+            if ( strpos( $mails, '@' ) !== false and strncmp( $mails , '@', 1 ) !== 0 ) return $mails;
+        });
+
         $flip_array_block_email = array_flip( $array_block_email );
         if ( isset( $flip_array_block_email[$post_email] ) ){
             $result->invalidate ( $tag, $request['error'] ); 
@@ -302,11 +306,13 @@ class WPCF7_EMAIL_VALIDATION_FILTER {
         if ( $email_validate === false ){
             $result->invalidate ( $tag, $request['error'] ); 
         }
+
         return $result;
     }
     
     public function plugin_dns_filter( $result, $tag, $array, $post_email ){
         if ( $request = $array['dns'] and isset( $request['active'] ) !== true ) return $result;
+
         preg_match( '/@([^@\[]++)\z/', $post_email, $post_email_domains );
         $post_email_domain = $post_email_domains[1];
 
